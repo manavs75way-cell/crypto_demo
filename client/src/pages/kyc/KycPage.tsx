@@ -27,7 +27,7 @@ const STEP_FIELDS: Record<number, { key: string; label: string; min: number; mes
 
 export const KycPage = () => {
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, kycStatus, isLoading, refreshKycStatus } = useAuth();
     const [step, setStep] = useState(0);
     const [kycRecord, setKycRecord] = useState<KycRecord | null>(null);
     const [submitting, setSubmitting] = useState(false);
@@ -41,6 +41,12 @@ export const KycPage = () => {
         idNumber: '',
         address: '',
     });
+
+    useEffect(() => {
+        if (!isLoading && kycStatus === 'APPROVED') {
+            navigate('/');
+        }
+    }, [kycStatus, isLoading, navigate]);
 
     useEffect(() => {
         kycApi.getStatus().then(({ data }) => setKycRecord(data.kyc)).catch(() => null);
@@ -83,6 +89,7 @@ export const KycPage = () => {
         try {
             const { data } = await kycApi.submit(form);
             setKycRecord(data.kyc);
+            await refreshKycStatus();
         } catch (err: unknown) {
             const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Submission failed';
             setError(msg);

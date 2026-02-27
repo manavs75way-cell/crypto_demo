@@ -11,6 +11,7 @@ interface AuthContextType {
     login: (email: string, password: string) => Promise<void>;
     register: (data: { email: string; password: string; firstName: string; lastName: string }) => Promise<void>;
     logout: () => Promise<void>;
+    refreshKycStatus: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -23,7 +24,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [kycStatus, setKycStatus] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    const fetchKycStatus = async () => {
+    const refreshKycStatus = async () => {
         try {
             const { data } = await kycApi.getStatus();
             setKycStatus(data.kyc?.status ?? null);
@@ -39,7 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             try {
                 const { data } = await authApi.getMe();
                 setUser(data.user);
-                await fetchKycStatus();
+                await refreshKycStatus();
             } catch {
                 localStorage.removeItem('accessToken');
                 setUser(null);
@@ -57,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem('accessToken', data.accessToken);
         setAccessToken(data.accessToken);
         setUser(data.user);
-        await fetchKycStatus();
+        await refreshKycStatus();
     };
 
     const register = async (formData: { email: string; password: string; firstName: string; lastName: string }) => {
@@ -77,7 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, accessToken, kycStatus, isLoading, login, register, logout }}>
+        <AuthContext.Provider value={{ user, accessToken, kycStatus, isLoading, login, register, logout, refreshKycStatus }}>
             {children}
         </AuthContext.Provider>
     );

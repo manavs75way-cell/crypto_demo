@@ -73,4 +73,4 @@ export const getMe = async (req: AuthRequest, res: Response, next: NextFunction)
     }
 };
 
-void env; // suppress unused warning
+void env; 
