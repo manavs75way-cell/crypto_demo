@@ -1,10 +1,12 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '../types';
 import { authApi } from '../api/auth.api';
+import { kycApi } from '../api/kyc.api';
 
 interface AuthContextType {
     user: User | null;
     accessToken: string | null;
+    kycStatus: string | null;
     isLoading: boolean;
     login: (email: string, password: string) => Promise<void>;
     register: (data: { email: string; password: string; firstName: string; lastName: string }) => Promise<void>;
@@ -18,7 +20,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [accessToken, setAccessToken] = useState<string | null>(
         localStorage.getItem('accessToken')
     );
+    const [kycStatus, setKycStatus] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+
+    const fetchKycStatus = async () => {
+        try {
+            const { data } = await kycApi.getStatus();
+            setKycStatus(data.kyc?.status ?? null);
+        } catch {
+            setKycStatus(null);
+        }
+    };
 
     useEffect(() => {
         const restore = async () => {
@@ -27,10 +39,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             try {
                 const { data } = await authApi.getMe();
                 setUser(data.user);
+                await fetchKycStatus();
             } catch {
                 localStorage.removeItem('accessToken');
                 setUser(null);
                 setAccessToken(null);
+                setKycStatus(null);
             } finally {
                 setIsLoading(false);
             }
@@ -43,6 +57,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem('accessToken', data.accessToken);
         setAccessToken(data.accessToken);
         setUser(data.user);
+        await fetchKycStatus();
     };
 
     const register = async (formData: { email: string; password: string; firstName: string; lastName: string }) => {
@@ -50,6 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem('accessToken', data.accessToken);
         setAccessToken(data.accessToken);
         setUser(data.user);
+        setKycStatus(null); // Fresh signup, no KYC yet
     };
 
     const logout = async () => {
@@ -57,10 +73,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.removeItem('accessToken');
         setUser(null);
         setAccessToken(null);
+        setKycStatus(null);
     };
 
     return (
-        <AuthContext.Provider value={{ user, accessToken, isLoading, login, register, logout }}>
+        <AuthContext.Provider value={{ user, accessToken, kycStatus, isLoading, login, register, logout }}>
             {children}
         </AuthContext.Provider>
     );

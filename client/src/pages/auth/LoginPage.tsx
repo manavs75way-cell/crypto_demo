@@ -1,13 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 export const LoginPage = () => {
-    const { login } = useAuth();
+    const { user, login, isLoading, kycStatus } = useAuth();
     const navigate = useNavigate();
     const [form, setForm] = useState({ email: '', password: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (!isLoading && user) {
+            if (user.role === 'admin') {
+                navigate('/admin');
+            } else if (kycStatus === 'APPROVED') {
+                navigate('/');
+            } else {
+                navigate('/kyc');
+            }
+        }
+    }, [user, isLoading, kycStatus, navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -15,17 +27,7 @@ export const LoginPage = () => {
         setError('');
         try {
             await login(form.email, form.password);
-            const token = localStorage.getItem('accessToken');
-            if (token) {
-                try {
-                    const payload = JSON.parse(atob(token.split('.')[1]));
-                    if (payload.role === 'admin') {
-                        navigate('/admin');
-                        return;
-                    }
-                } catch { /* fallthrough to default */ }
-            }
-            navigate('/');
+            // Redirection is handled by useEffect
         } catch (err: unknown) {
             const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Login failed';
             setError(msg);

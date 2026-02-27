@@ -11,20 +11,17 @@ export const executeTrade = async (userId: string, data: TradeInput) => {
     const fromC = fromCurrency as SupportedCurrency;
     const toC = toCurrency as SupportedCurrency;
 
-    // Ensure source wallet exists and has enough balance
     const fromWallet = await Wallet.findOne({ userId, currency: fromC });
     if (!fromWallet) throw Object.assign(new Error(`No ${fromC} wallet found`), { statusCode: 404 });
     if (fromWallet.balance < amount)
         throw Object.assign(new Error(`Insufficient ${fromC} balance`), { statusCode: 400 });
 
-    // Calculate conversion
     const fromPrice = getPrice(fromC);
     const toPrice = getPrice(toC);
     const usdValue = amount * fromPrice;
     const fee = usdValue * FEE_RATE;
     const toAmount = parseFloat(((usdValue - fee) / toPrice).toFixed(8));
 
-    // Ensure destination wallet exists (auto-create if not)
     let toWallet = await Wallet.findOne({ userId, currency: toC });
     if (!toWallet) {
         toWallet = await Wallet.create({
@@ -35,13 +32,11 @@ export const executeTrade = async (userId: string, data: TradeInput) => {
         });
     }
 
-    // Update balances
     fromWallet.balance = parseFloat((fromWallet.balance - amount).toFixed(8));
     toWallet.balance = parseFloat((toWallet.balance + toAmount).toFixed(8));
     await fromWallet.save();
     await toWallet.save();
 
-    // Log transaction
     const tx = await Transaction.create({
         userId,
         type: 'TRADE',

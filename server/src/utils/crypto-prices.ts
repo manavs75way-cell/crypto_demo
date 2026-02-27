@@ -16,8 +16,8 @@ let currentPrices: PriceMap = { ...BASE_PRICES };
 const drift = (): void => {
     const keys = Object.keys(currentPrices) as SupportedCurrency[];
     keys.forEach((key) => {
-        if (key === 'USDT') return; // stable
-        const change = 1 + (Math.random() - 0.5) * 0.01; // ±0.5%
+        if (key === 'USDT') return; 
+        const change = 1 + (Math.random() - 0.5) * 0.01; 
         currentPrices[key] = parseFloat((currentPrices[key] * change).toFixed(6));
     });
 };

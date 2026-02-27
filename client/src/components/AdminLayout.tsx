@@ -19,10 +19,8 @@ export const AdminLayout = () => {
     return (
         <div className="flex min-h-screen bg-slate-950 text-white">
 
-            {/* Sidebar */}
             <aside className="fixed inset-y-0 left-0 w-72 bg-slate-900/80 backdrop-blur-xl border-r border-slate-800/50 flex flex-col shadow-2xl">
 
-                {/* Header */}
                 <div className="px-6 py-6 border-b border-slate-800/50">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg">
@@ -40,7 +38,6 @@ export const AdminLayout = () => {
                     </div>
                 </div>
 
-                {/* Navigation */}
                 <nav className="flex-1 px-4 py-6 space-y-2">
                     {ADMIN_NAV.map(({ to, label, icon }) => (
                         <NavLink
@@ -72,7 +69,6 @@ export const AdminLayout = () => {
                     ))}
                 </nav>
 
-                {/* User Section */}
                 <div className="px-4 py-5 border-t border-slate-800/50">
 
                     <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-slate-800/70 border border-slate-700/50 mb-4">

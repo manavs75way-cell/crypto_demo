@@ -2,7 +2,7 @@ import { Wallet, SupportedCurrency } from '../wallet/wallet.model';
 import { Transaction } from '../../models/transaction.model';
 import { WithdrawInput } from './withdraw.schema';
 
-const WITHDRAW_FEE_RATE = 0.002; // 0.2%
+const WITHDRAW_FEE_RATE = 0.002; 
 
 export const requestWithdrawService = async (userId: string, data: WithdrawInput) => {
     const { currency, amount, toAddress } = data;

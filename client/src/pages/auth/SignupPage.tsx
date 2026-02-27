@@ -1,13 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 export const SignupPage = () => {
-    const { register } = useAuth();
+    const { user, register, isLoading, kycStatus } = useAuth();
     const navigate = useNavigate();
     const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (!isLoading && user) {
+            if (kycStatus === 'APPROVED') {
+                navigate('/');
+            } else {
+                navigate('/kyc');
+            }
+        }
+    }, [user, isLoading, kycStatus, navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -15,7 +25,7 @@ export const SignupPage = () => {
         setError('');
         try {
             await register(form);
-            navigate('/kyc');
+            // Redirection is handled by useEffect
         } catch (err: unknown) {
             const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Registration failed';
             setError(msg);
